@@ -9,8 +9,7 @@ class AddMediaFormPage extends StatefulWidget {
   final bool isVideo;
 
   const AddMediaFormPage(
-      {Key? key, required this.mediaFile, this.isVideo = false})
-      : super(key: key);
+      {super.key, required this.mediaFile, this.isVideo = false});
 
   @override
   State <AddMediaFormPage> createState() => _AddMediaFormPageState();
@@ -76,10 +75,12 @@ class _AddMediaFormPageState extends State<AddMediaFormPage> {
           ),
         );
       } catch (e) {
-        // Handle errors
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-        );
+        if (mounted) {
+          // Handle errors
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          );
+        }
       }
     }
   }
@@ -103,20 +104,23 @@ class _AddMediaFormPageState extends State<AddMediaFormPage> {
           'MediaUrl': downloadUrl,
           'IsVideo': widget.isVideo,
         });
-
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Media uploaded successfully!'),
-              backgroundColor: Colors.green),
-        );
+if (mounted) {
+  // Show success message
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+        content: Text('Media uploaded successfully!'),
+        backgroundColor: Colors.green),
+  );
+}
       } on FirebaseException catch (e) {
         // Handle errors
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Error uploading media: ${e.message}'),
-              backgroundColor: Colors.red),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('Error uploading media: ${e.message}'),
+                backgroundColor: Colors.red),
+          );
+        }
       }
     }
   }

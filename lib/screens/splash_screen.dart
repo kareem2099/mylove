@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import '../page/auth_page.dart';
-import 'navigate.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -32,9 +31,12 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   _navigateToHome() async {
-    await Future.delayed(const Duration(seconds: 15), () {});
-    Navigator.pushReplacement(
-        context, MaterialPageRoute(builder: (context) =>  AuthPage()));
+
+      await Future.delayed(const Duration(seconds: 15), () {});
+      if(mounted) {
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (context) => const AuthPage()));
+    }
   }
 
   @override
@@ -44,8 +46,8 @@ class _SplashScreenState extends State<SplashScreen> {
           ? FittedBox(
         fit: BoxFit.cover,
         child: SizedBox(
-          width: _controller!.value.size?.width ?? 0,
-          height: _controller!.value.size?.height ?? 0,
+          width: _controller!.value.size.width,
+          height: _controller!.value.size.height,
           child: VideoPlayer(_controller!),
         ),
       )

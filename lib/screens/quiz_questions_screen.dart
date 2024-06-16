@@ -6,8 +6,7 @@ import 'result_screen.dart';
 class QuizQuestionsScreen extends StatefulWidget {
   final List<Question> questions;
 
-  const QuizQuestionsScreen({Key? key, required this.questions})
-      : super(key: key);
+  const QuizQuestionsScreen({super.key, required this.questions});
 
   @override
   State<QuizQuestionsScreen> createState() => _QuizQuestionsScreenState();
@@ -219,7 +218,7 @@ class _QuizQuestionsScreenState extends State<QuizQuestionsScreen>
                           ),
                         ))
                     .values
-                    .toList(),
+                    ,
 
                 // Use the animated progress value
                 LinearProgressIndicator(

@@ -9,8 +9,7 @@ class AddImageFormPage extends StatefulWidget {
   final bool isVideo;
 
   const AddImageFormPage(
-      {Key? key, required this.imageFile, this.isVideo = false})
-      : super(key: key);
+      {super.key, required this.imageFile, this.isVideo = false});
 
   @override
   State <AddImageFormPage> createState() => _AddImageFormPageState();
@@ -86,10 +85,12 @@ class _AddImageFormPageState extends State<AddImageFormPage> {
           ),
         );
       } catch (e) {
-        // Handle errors
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-        );
+        if(mounted) {
+          // Handle errors
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          );
+        }
       }
     }
   }
@@ -126,16 +127,17 @@ class _AddImageFormPageState extends State<AddImageFormPage> {
           'ImageDescription': _descriptionController.text,
           'ImageUrl': downloadUrl,
         });
+if(mounted) {
+  // Dismiss the loading dialog
+  Navigator.pop(context);
 
-        // Dismiss the loading dialog
-        Navigator.pop(context);
-
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Image uploaded successfully!'),
-              backgroundColor: Colors.green),
-        );
+  // Show success message
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+        content: Text('Image uploaded successfully!'),
+        backgroundColor: Colors.green),
+  );
+}
 
         // Optionally, clear the form or navigate away
         _titleController.clear();
@@ -146,15 +148,17 @@ class _AddImageFormPageState extends State<AddImageFormPage> {
         });
 
       } on FirebaseException catch (e) {
-        // Dismiss the loading dialog
-        Navigator.pop(context);
+        if (mounted) {
+          // Dismiss the loading dialog
+          Navigator.pop(context);
 
-        // Handle errors
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Error uploading image: ${e.message}'),
-              backgroundColor: Colors.red),
-        );
+          // Handle errors
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('Error uploading image: ${e.message}'),
+                backgroundColor: Colors.red),
+          );
+        }
       }
     } else {
       // No image was selected

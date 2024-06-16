@@ -110,9 +110,7 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
       if (mounted) {
         _showErrorDialog(context, errorMessage);
       }
-      print('FirebaseAuthException: ${e.code} - ${e.message}');
     } catch (e) {
-      print('General Exception: ${e.toString()}');
       if (mounted) {
         _showErrorDialog(context, 'An unexpected error occurred.');
       }
@@ -123,7 +121,6 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
-        print('Google sign-in aborted by user');
         return; // The user aborted the sign-in
       }
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
@@ -166,9 +163,7 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
       if (mounted) {
         _showErrorDialog(context, errorMessage);
       }
-      print('FirebaseAuthException: ${e.code} - ${e.message}');
     } catch (e) {
-      print('General Exception: ${e.toString()}');
       if (mounted) {
         _showErrorDialog(context, 'An unexpected error occurred during Google sign-in.');
       }
@@ -183,7 +178,6 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
         await _auth.signInWithCredential(credential);
         _onAuthenticationSuccess();
       } else {
-        print('Facebook sign-in failed: ${result.message}');
         if (mounted) {
           _showErrorDialog(context, 'An error occurred during Facebook sign-in: ${result.message}');
         }
@@ -221,9 +215,7 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
       if (mounted) {
         _showErrorDialog(context, errorMessage);
       }
-      print('FirebaseAuthException: ${e.code} - ${e.message}');
     } catch (e) {
-      print('General Exception: ${e.toString()}');
       if (mounted) {
         _showErrorDialog(context, 'An unexpected error occurred during Facebook sign-in.');
       }

@@ -11,7 +11,7 @@ import '../page/media_detail_page.dart';
 import '../page/photo_detail_page.dart';
 
 class UploadScreen extends StatefulWidget {
-  const UploadScreen({Key? key}) : super(key: key);
+  const UploadScreen({super.key});
 
   @override
   State <UploadScreen> createState() => _UploadScreenState();
@@ -25,7 +25,8 @@ class _UploadScreenState extends State<UploadScreen> {
 
   Future<void> pickImage() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
+    if (image != null && mounted) {
+
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => AddImageFormPage(
@@ -39,7 +40,7 @@ class _UploadScreenState extends State<UploadScreen> {
 
   Future<void> pickVideo() async {
     final XFile? video = await _picker.pickVideo(source: ImageSource.gallery);
-    if (video != null) {
+    if (video != null && mounted) {
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => AddMediaFormPage(
@@ -65,13 +66,14 @@ class _UploadScreenState extends State<UploadScreen> {
       'date': date,
       'description': description,
     });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('File uploaded successfully'),
-        backgroundColor: Colors.green,
-      ),
-    );
+ if (mounted) {
+   ScaffoldMessenger.of(context).showSnackBar(
+     const SnackBar(
+       content: Text('File uploaded successfully'),
+       backgroundColor: Colors.green,
+     ),
+   );
+ }
   }
 
   Widget getIconBasedOnType(String type) {
@@ -95,20 +97,23 @@ class _UploadScreenState extends State<UploadScreen> {
       for (var doc in snapshot.docs) {
         await doc.reference.delete();
       }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('File deleted successfully'),
-          backgroundColor: Colors.green,
-        ),
-      );
+if (mounted) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text('File deleted successfully'),
+      backgroundColor: Colors.green,
+    ),
+  );
+}
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to delete the file'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to delete the file'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -186,7 +191,7 @@ class _UploadScreenState extends State<UploadScreen> {
 
     return Card(
       child: Column(
-        children: <Widget>[flutter
+        children: <Widget>[
           ListTile(
             title: Text(title),
             subtitle: Text(description),
