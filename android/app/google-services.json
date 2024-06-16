@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "959279014063",
+    "firebase_url": "https://mylove-d73a0-default-rtdb.firebaseio.com",
+    "project_id": "mylove-d73a0",
+    "storage_bucket": "mylove-d73a0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:959279014063:android:3ce29142cf5dc2bff0f45a",
+        "android_client_info": {
+          "package_name": "my.love"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "959279014063-98l0m33gemperhdjp1s04kg1vsppranf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "my.love",
+            "certificate_hash": "5579f9821a061a68017fa6dc51c31984849090bb"
+          }
+        },
+        {
+          "client_id": "959279014063-od4h7ma6c6l1f8fsmidv2kbdc5u80rec.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBEl5eceW15N8BPTOoJV0FQ-86aavxboVo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "959279014063-od4h7ma6c6l1f8fsmidv2kbdc5u80rec.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

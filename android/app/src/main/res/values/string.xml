@@ -1,0 +1,6 @@
+<!-- res/values/strings.xml -->
+<resources>
+    <string name="facebook_app_id">771965618464402</string>
+    <string name="app_name">MyLove</string> <!-- Replace "MyLove" with your actual app name -->
+    <string name="fb_login_protocol_scheme">fb771965618464402</string> <!-- Replace "YOUR_FACEBOOK_APP_ID" with your actual Facebook App ID -->
+</resources>

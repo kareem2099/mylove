@@ -1,0 +1,48 @@
+{
+  "quizTitle": "Love Memory Quiz",
+  "questions": [
+    {
+      "id": 1,
+      "question": "How are you, cutie?😎",
+      "options": ["good😉", "perfect😉", "awesome😘", "m4ta2a😘❤❤❤❤"],
+      "answer": "m4ta2a😘❤❤❤❤",
+      "loveBar": "2"
+    },
+    {
+      "id": 2,
+      "question": "What is our favorite song?🎵",
+      "options": ["After Dark👻", "hallucination🤩", "Sing Load", "All of Me"],
+      "answer": "After Dark👻",
+      "loveBar": "4"
+    },
+    {
+      "id": 3,
+      "question": "What movie did we first watch together?",
+      "options": ["kill me heal me", "Nevertheless", "La La Land", "Inception"],
+      "answer": "kill me heal me",
+      "loveBar": "1"
+      
+    },
+    {
+      "id": 4,
+      "question": "What was the first game you played?",
+      "options": ["tlbes bnat", "pink panther", "call of duty 2", "taken"],
+      "answer": "pink panther",
+      "loveBar": "2"
+    },
+    {
+      "id": 5,
+      "question": "When did we first see our movie together?",
+      "options": ["3/10/2022", "4/12/2022", "5/11/2022", "8/11/2025"],
+      "answer": "3/10/2022",
+      "loveBar": "1"
+    },
+    {
+      "id": 6,
+      "question": "And who first said “I love you”?",
+      "options": ["me", "me", "me", "ok ok fine, it’s you"],
+      "answer": "ok ok fine, it’s you",
+      "loveBar": "3"
+    }
+  ]
+}
