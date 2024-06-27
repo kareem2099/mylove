@@ -1,8 +1,15 @@
+import 'package:bottom_picker/resources/arrays.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io';
+import 'package:intl/intl.dart';
+import 'package:bottom_picker/bottom_picker.dart'; // Import bottom_picker
+import 'package:mylove/screens/upload_screen.dart';
+
 
 class AddImageFormPage extends StatefulWidget {
   final XFile imageFile;
@@ -21,11 +28,14 @@ class _AddImageFormPageState extends State<AddImageFormPage> {
   final TextEditingController _descriptionController = TextEditingController();
   XFile? _image;
   final ImagePicker _picker = ImagePicker();
+   DateTime _selectedDate = DateTime.now(); // Define _selectedDate here
+   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     _image = widget.imageFile;
+    _dateController.text = DateFormat('yyyy-MM-dd').format(_selectedDate); // Initialize date field
   }
 
   Future<void> _pickImage() async {
@@ -98,6 +108,9 @@ class _AddImageFormPageState extends State<AddImageFormPage> {
   Future<void> _uploadImageNow(File imageFile) async {
     if (_image != null) {
       try {
+        setState(() {
+          _isLoading = true;
+        });
         // Show a loading dialog
         showDialog(
           context: context,
@@ -114,14 +127,21 @@ class _AddImageFormPageState extends State<AddImageFormPage> {
           },
         );
 
+        final userId = FirebaseAuth.instance.currentUser?.uid;
+
+        if (userId == null) {
+          throw FirebaseAuthException(code: 'No_user', message: 'No USer is currently signed in.');
+        }
+
         // Upload to Firebase Storage
         final ref = FirebaseStorage.instance
-            .ref('uploads/images/${DateTime.now().toString()}');
+            .ref('uploads/images/$userId/${DateTime.now().toString()}');
         await ref.putFile(imageFile);
         final String downloadUrl = await ref.getDownloadURL();
 
         // Store metadata in Firestore
         await FirebaseFirestore.instance.collection('images').add({
+          'userId': userId,
           'ImageTitle': _titleController.text,
           'ImageDate': _dateController.text,
           'ImageDescription': _descriptionController.text,
@@ -136,6 +156,11 @@ if(mounted) {
     const SnackBar(
         content: Text('Image uploaded successfully!'),
         backgroundColor: Colors.green),
+  );
+  // Navigate to UploadScreen
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(builder: (context) => const UploadScreen()),
   );
 }
 
@@ -159,6 +184,10 @@ if(mounted) {
                 backgroundColor: Colors.red),
           );
         }
+      } finally {
+        setState(() {
+          _isLoading=false;
+        });
       }
     } else {
       // No image was selected
@@ -169,6 +198,37 @@ if(mounted) {
       );
     }
   }
+
+  void _openDatePicker() {
+    BottomPicker.date(
+      pickerTitle: const Text(
+        'Set date',
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 15,
+          color: Colors.blue,
+        ),
+      ),
+      dateOrder: DatePickerDateOrder.dmy,
+      initialDateTime: DateTime(2021, 12, 23),
+      maxDateTime: DateTime(2030),
+      minDateTime: DateTime(1998),
+      pickerTextStyle: const TextStyle(
+        color: Colors.blue,
+        fontWeight: FontWeight.bold,
+        fontSize: 12,
+      ),
+      // Use onSubmit to update_selectedDate and the text field
+      onSubmit: (selectedDate) {
+        setState(() {
+          _selectedDate = selectedDate;
+          _dateController.text = DateFormat('yyyy-MM-dd').format(_selectedDate);
+        });
+      },
+      bottomPickerTheme: BottomPickerTheme.plumPlate,
+    ).show(context);
+  }
+
 
 
   @override
@@ -187,21 +247,30 @@ if(mounted) {
                 onPressed: _pickImage,
                 child: const Text('Pick Image'),
               ),
+            const SizedBox(height: 16),
             TextField(
               controller: _titleController,
               decoration: const InputDecoration(labelText: 'Title'),
             ),
-            TextField(
-              controller: _dateController,
-              decoration: const InputDecoration(labelText: 'Date'),
+            const SizedBox(height: 16),
+            // Date Picker with Button
+            ElevatedButton(
+              onPressed: _openDatePicker,
+              child: Text(
+                'Select Date: ${DateFormat('yyyy-MM-dd').format(_selectedDate)}',
+              ),
             ),
+            const SizedBox(height: 16),
             TextField(
               controller: _descriptionController,
               decoration: const InputDecoration(labelText: 'Description'),
             ),
+            const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: _uploadImage,
-              child: const Text('Upload Image'),
+              onPressed: _isLoading ? null : _uploadImage,
+              child: _isLoading
+                  ? const CircularProgressIndicator()
+                  : const Text('Upload Image'),
             ),
           ],
         ),

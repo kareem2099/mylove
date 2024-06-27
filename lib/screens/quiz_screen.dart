@@ -15,44 +15,70 @@ class QuizScreen extends StatelessWidget {
       create: (context) => QuizBloc()..add(LoadQuiz()),
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Our Love journey Quiz'),
+          title: const Text('Our Love Journey Quiz'),
         ),
         body: BlocBuilder<QuizBloc, QuizState>(
           builder: (context, state) {
             if (state is QuizInitial) {
-              return const Center(child: CircularProgressIndicator());
+              return Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
+                ),);
             } else if (state is QuizLoaded) {
               return Center(
-                // Center the content vertically and horizontally
                 child: Column(
-                  mainAxisSize: MainAxisSize.min, // Use the minimum space
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      'Questions: ${state.questions.length}', // Display the number of questions
-                      style: const TextStyle(
-                          fontSize: 24, fontWeight: FontWeight.bold),
+                    Semantics(
+                      label: 'Number of questions: ${state.questions.length}',
+                      child: Text(
+                        'Questions: ${state.questions.length}',
+                        style: Theme.of(context).textTheme.headlineMedium,
+                      ),
                     ),
-                    const SizedBox(
-                        height: 20), // Spacing between text and button
-                    ElevatedButton(
-                      onPressed: () {
-                        // Navigate to the quiz questions screen
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                QuizQuestionsScreen(questions: state.questions),
-                          ),
-                        );
-                      },
-                      child: const Text('Discover Our Love'),
+                    const SizedBox(height: 20),
+                    Semantics(
+                      button: true,
+                      label: 'Start the quiz',
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  QuizQuestionsScreen(questions: state.questions),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.pinkAccent,
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                          textStyle: const TextStyle(fontSize: 18),
+                        ),
+                        child: const Text('Discover Our Love'),
+                      ),
                     ),
                   ],
                 ),
               );
+            } else if (state is QuizError) {
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Oops! Something went wrong.'),
+                    ElevatedButton(
+                      onPressed: () {
+                        context.read<QuizBloc>().add(LoadQuiz()); // Retry loading
+                      },
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              );
+            } else {
+              return const Center(child: Text('Unexpected state'));
             }
-            return const Center(
-                child: Text('a7a why u bulling me like bulling ball'));
           },
         ),
       ),

@@ -25,16 +25,35 @@ class PhotoDetailPage extends StatelessWidget {
           children: [
             Hero(
               tag: ImageUrl, // Use the same tag as in the grid
-              child: Image.network(ImageUrl),
-            ),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0), // Added padding
-              child: Text(
-                'Date: $ImageDate',
-                style: Theme.of(context).textTheme.headlineMedium, // Added text style
+              child: Image.network(ImageUrl,loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return const Center(child: CircularProgressIndicator());
+              },
+                errorBuilder: (context, error, stackTrace) {
+                  return const Center(
+                    child: Text('Failed to load image'),
+                  );
+                },
               ),
             ),
+            const SizedBox(height: 20),
+             Card(
+               margin: const EdgeInsets.symmetric(horizontal: 16),
+               child: Padding(
+                padding: const EdgeInsets.all(16.0), // Added padding
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Date: $ImageDate',
+                      style: Theme.of(context).textTheme.headlineMedium, // Added text style
+                      maxLines: 2, // Limit lines if text is too long
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+                           ),
+             ),
             const SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0), // Added padding

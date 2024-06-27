@@ -2,8 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:mylove/page/login_form_page.dart';
+import 'package:mylove/screens/user_onboarding_screen.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:mylove/service/AudioPlayerService.dart';
+import 'package:provider/provider.dart';
 
-import '../screens/navigate.dart';
+import 'signup_form_page.dart'; // Import for audio playback
+
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
@@ -24,6 +30,10 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
 
+  bool _isLoading = false; // Add loading state
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  bool _isPlaying = false;
+
   @override
   void initState() {
     super.initState();
@@ -31,7 +41,12 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-    _flipAnimation = Tween<double>(begin: 0, end: 1).animate(_animationController);
+    _flipAnimation = Tween<double>(begin: 0, end: 2).animate(_animationController);
+    _playBackgroundMusic();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<AudioPlayerService>(context, listen: false)
+          .playBackgroundMusic();});
+
   }
 
   @override
@@ -41,6 +56,14 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
+    _audioPlayer.dispose();
+  }
+
+  Future<void> _playBackgroundMusic() async {
+    await _audioPlayer.play(AssetSource('video/songSplashScreen.mp3'));
+    setState(() {
+      _isPlaying = true;
+    });
   }
 
   void _toggleFormMode() {
@@ -52,13 +75,19 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
 
 
   void _onAuthenticationSuccess() {
-  Navigator.pushReplacement(
-  context,
-  MaterialPageRoute(builder: (context) => const MyHomePage()),
-  );
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const UserOnboardingScreen()),
+
+    );
   }
 
+
   Future<void> _signInWithEmailPassword(String email, String password) async {
+    setState(() {
+      _isLoading = true;
+    });
     try {
       UserCredential userCredential = _isLogin
           ? await _auth.signInWithEmailAndPassword(email: email, password: password)
@@ -114,10 +143,17 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
       if (mounted) {
         _showErrorDialog(context, 'An unexpected error occurred.');
       }
+    } finally { // Add the finally block here
+      setState(() {
+        _isLoading = false; // Hide loading indicator regardless of outcome
+      });
     }
   }
 
   Future<void> _signInWithGoogle() async {
+    setState(() {
+      _isLoading = true;
+    });
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
@@ -129,6 +165,7 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
         idToken: googleAuth.idToken,
       );
       await _auth.signInWithCredential(credential);
+
       _onAuthenticationSuccess();
     } on FirebaseAuthException catch (e) {
       String errorMessage;
@@ -167,22 +204,36 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
       if (mounted) {
         _showErrorDialog(context, 'An unexpected error occurred during Google sign-in.');
       }
+    } finally { // Add the finally block here
+      setState(() {
+        _isLoading = false; // Hide loading indicator regardless of outcome
+      });
     }
   }
 
   Future<void> _signInWithFacebook() async {
+    setState(() {
+      _isLoading = true;
+    });
     try {
+      print('Attempting Facebook login');
       final LoginResult result = await FacebookAuth.instance.login();
+      print('Facebook login result; $result');
       if (result.status == LoginStatus.success) {
+        print('Facebook Login successful');
         final OAuthCredential credential = FacebookAuthProvider.credential(result.accessToken!.tokenString);
+        print('Facebook OAuth Credential obtained: $credential');
         await _auth.signInWithCredential(credential);
+        print('Firebase sign-in with facebook credential successful');
         _onAuthenticationSuccess();
       } else {
+        print('Facebook login failed; {result.message}');
         if (mounted) {
           _showErrorDialog(context, 'An error occurred during Facebook sign-in: ${result.message}');
         }
       }
     } on FirebaseAuthException catch (e) {
+      print('FirebaseAuthException during facebook sign-in: ${e.code}');
       String errorMessage;
       switch (e.code) {
         case 'account-exists-with-different-credential':
@@ -212,13 +263,18 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
         default:
           errorMessage = 'An unexpected error occurred: ${e.message}';
       }
+      print('General exception during Facebook sign-in: $e');
       if (mounted) {
         _showErrorDialog(context, errorMessage);
       }
     } catch (e) {
       if (mounted) {
-        _showErrorDialog(context, 'An unexpected error occurred during Facebook sign-in.');
+        _showErrorDialog(context, 'An unexpected error occurred during Facebook sign-in: $e.');
       }
+    } finally { // Add the finally block here
+      setState(() {
+        _isLoading = false; // Hide loading indicator regardless of outcome
+      });
     }
   }
 
@@ -246,157 +302,57 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AnimatedBuilder(
-        animation: _flipAnimation,
-        builder: (context, child) {
-          // Perspective effect
-          final Matrix4 transform = Matrix4.identity()
-            ..setEntry(3, 2, 0.001) // perspective
-            ..rotateY(3.1415 * _flipAnimation.value);
-          // Here you can add your flip animation logic
-          return Transform(
-            transform: transform,
-            alignment: Alignment.center,
-            child: _isLogin ? LoginForm(onSignUpSelected: _toggleFormMode,emailController: _emailController,passwordController: _passwordController,signInWithEmailPassword: _signInWithEmailPassword,signInWithFacebook: _signInWithFacebook,signInWithGoogle: _signInWithGoogle,) : SignUpForm(onSignInSelected: _toggleFormMode,emailController: _emailController,passwordController: _passwordController,signUpWithEmailPassword: _signInWithEmailPassword,confirmPasswordController: _confirmPasswordController,),
-          );
-        },
+      appBar: AppBar(
+        title: const Text(
+          'OUR LOVE QUIZ',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+          ),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.pink[300],
+      ),
+      body: Stack(
+        children:[
+          // Background Image
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/third.jpg',
+              fit: BoxFit.cover,
+            ),
+          ),
+          Center(
+            child: AnimatedBuilder(
+            animation: _flipAnimation,
+            builder: (context, child) {
+              // Perspective effect
+              final Matrix4 transform = Matrix4.identity()
+                ..setEntry(3, 2, 0.001) // perspective
+                ..rotateY(3.1415 * _flipAnimation.value);
+              // Here you can add your flip animation logic
+              return Transform(
+                transform: transform,
+                alignment: Alignment.center,
+                  child: Container(
+                  padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.8),
+              borderRadius: BorderRadius.circular(10),
+              ),
+                child: _isLogin ? LoginForm(onSignUpSelected: _toggleFormMode,emailController: _emailController,passwordController: _passwordController,signInWithEmailPassword: _signInWithEmailPassword,signInWithFacebook: _signInWithFacebook,signInWithGoogle: _signInWithGoogle,) : SignUpForm(onSignInSelected: _toggleFormMode,emailController: _emailController,passwordController: _passwordController,signUpWithEmailPassword: _signInWithEmailPassword,confirmPasswordController: _confirmPasswordController,),
+                  ),
+              );
+
+            },
+                    ),
+          ),
+          if (_isLoading) // Show loading indicator when _isLoading is true
+            const Center(
+              child: CircularProgressIndicator(),
+            ),
+      ],
       ),
     );
   }
 }
-
-// LoginForm with updated onPressed callbacks
-class LoginForm extends StatelessWidget {
-  final VoidCallback onSignUpSelected;
-  final TextEditingController emailController;
-  final TextEditingController passwordController;
-
-  final Function(String, String) signInWithEmailPassword;
-  final Function signInWithGoogle;
-  final Function signInWithFacebook;
-
-
-
-   const LoginForm({super.key,
-    required this.onSignUpSelected,
-    required this.emailController,
-    required this.passwordController,
-    required this.signInWithEmailPassword,
-    required this.signInWithGoogle,
-    required this.signInWithFacebook,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return  Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          TextFormField(
-            controller: emailController,
-            decoration: const InputDecoration(labelText: 'Email'),
-            keyboardType: TextInputType.emailAddress,
-          ),
-          TextFormField(
-            controller: passwordController,
-            decoration: const InputDecoration(labelText: 'Password'),
-            obscureText: true,
-          ),
-          ElevatedButton(
-            onPressed: () => signInWithEmailPassword(emailController.text, passwordController.text),
-            child: const Text('Login'),
-          ),
-          ElevatedButton(
-            onPressed: () => signInWithGoogle(),
-            child: const Text('Sign in with Google'),
-          ),
-          ElevatedButton(
-            onPressed: () => signInWithFacebook(),
-            child: const Text('Sign in with Facebook'),
-          ),
-          TextButton(
-            onPressed: onSignUpSelected,
-            child: const Text('Don\'t have an account? Sign up'),
-          ),
-        ],
-
-    );
-  }
-}
-
-// SignUpForm with updated onPressed callbacks and password comparison logic
-class SignUpForm extends StatelessWidget {
-  final VoidCallback onSignInSelected;
-  final TextEditingController emailController;
-  final TextEditingController passwordController;
-  final TextEditingController confirmPasswordController;
-  final Function(String, String) signUpWithEmailPassword;
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
-
-  SignUpForm({super.key,
-    required this.onSignInSelected,
-    required this.emailController,
-    required this.passwordController,
-    required this.signUpWithEmailPassword,
-    required this.confirmPasswordController,
-  });
-
-  final TextEditingController _confirmPasswordController = TextEditingController();
-
-  @override
-  Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          TextFormField(
-            controller: emailController,
-            decoration: const InputDecoration(labelText: 'Email'),
-            keyboardType: TextInputType.emailAddress,
-            validator: (value) {
-              if (value == null || value.isEmpty || !value.contains('@')) {
-                return 'please enter a valid email';
-              }
-              return null;
-            },
-          ),
-          TextFormField(
-            controller: passwordController,
-            decoration: const InputDecoration(labelText: 'Password'),
-            obscureText: true,
-          ),
-          TextFormField(
-            controller: _confirmPasswordController,
-            decoration: const InputDecoration(labelText: 'Confirm Password'),
-            obscureText: true,
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if
-              (_formKey.currentState!.validate()) {
-                if (passwordController.text ==
-                    _confirmPasswordController.text) {
-                  signUpWithEmailPassword(
-                      emailController.text, passwordController.text);
-                } else {
-                  // Show an error if the passwords don't match
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Passwords do not match.')),
-                  );
-                }
-              }
-            },
-            child: const Text('Sign Up'),
-          ),
-
-          TextButton(
-            onPressed: onSignInSelected,
-            child: const Text('Already have an account? Login'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-

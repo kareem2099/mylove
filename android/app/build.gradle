@@ -21,7 +21,7 @@ if (flutterVersionCode == null) {
 
 def flutterVersionName = localProperties.getProperty('flutter.versionName')
 if (flutterVersionName == null) {
-    flutterVersionName = '1.1'
+    flutterVersionName = '1.2.0.1'
 }
 
 android {
@@ -74,6 +74,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-storage'
     implementation 'com.facebook.android:facebook-android-sdk:16.0.0'
+    implementation 'com.facebook.android:facebook-login:16.0.0'
     implementation 'com.google.firebase:firebase-auth'
 }
 

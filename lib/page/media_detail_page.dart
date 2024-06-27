@@ -31,12 +31,40 @@ class MediaDetailPage extends StatelessWidget {
               tag: MediaUrl,
               child: isVideo
                   ? VideoPlayerWidget(mediaUrl: MediaUrl)
-                  : Image.network(MediaUrl),
+                  : Image.network(
+                MediaUrl,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return const Center(child: CircularProgressIndicator());
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  return const Center(
+                    child: Text('Failed to load image'),
+                  );
+                },
+              ),
             ),
-            const SizedBox(height: 16),
-            Text('Date: $MediaDate'),
-            const SizedBox(height: 8),
-            Text('Description: $MediaDescription'),
+            const SizedBox(height: 20),
+            Card( // Added Card for details
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Date: $MediaDate',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Description: $MediaDescription',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -50,11 +78,13 @@ class VideoPlayerWidget extends StatefulWidget {
   const VideoPlayerWidget({super.key, required this.mediaUrl});
 
   @override
-  _VideoPlayerWidgetState createState() => _VideoPlayerWidgetState();
+  State <VideoPlayerWidget> createState() => _VideoPlayerWidgetState();
 }
 
 class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   late VideoPlayerController _controller;
+  bool _isPlaying = false; // Track video playback state
+
 
   @override
   void initState() {
@@ -62,7 +92,14 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     _controller = VideoPlayerController.networkUrl(Uri.parse(widget.mediaUrl))
       ..initialize().then((_) {
         setState(() {});
-        _controller.play();
+      })
+      ..addListener(() {
+        // Update playback state when video finishes
+        if (_controller.value.position == _controller.value.duration) {
+          setState(() {
+            _isPlaying = false;
+          });
+        }
       });
   }
 
@@ -75,10 +112,50 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   @override
   Widget build(BuildContext context) {
     return _controller.value.isInitialized
-        ? AspectRatio(
-      aspectRatio: _controller.value.aspectRatio,
-      child: VideoPlayer(_controller),
+        ? Stack(
+      alignment: Alignment.center,
+      children: [
+        AspectRatio(
+          aspectRatio: _controller.value.aspectRatio,
+          child: VideoPlayer(_controller),
+        ),
+        // Video Controls
+        IconButton(
+          onPressed: () {
+            setState(() {
+              _isPlaying = !_isPlaying;
+              if (_isPlaying) {
+                _controller.play();
+              } else {
+                _controller.pause();
+              }
+            });
+          },
+          icon: Icon(
+            _isPlaying ? Icons.pause_circle : Icons.play_circle,
+            size: 48,
+            color: Colors.white,
+          ),
+        ),
+        // Video Progress Indicator
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: VideoProgressIndicator(
+            _controller,
+            allowScrubbing: true,
+            colors: const VideoProgressColors(
+              playedColor: Colors.pink,
+              bufferedColor: Colors.pinkAccent,
+              backgroundColor: Colors.grey,
+            ),
+          ),
+        ),
+      ],
     )
-        : const Center(child: CircularProgressIndicator());
+        : const Center(
+      child: Text('Failed to load video'), // Error message
+    );
   }
 }

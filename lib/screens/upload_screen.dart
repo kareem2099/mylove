@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:transparent_image/transparent_image.dart';
 
 import '../page/add_media_form_page.dart';
 import '../page/add_photo_form_page.dart';
@@ -189,33 +190,40 @@ if (mounted) {
     String description = data?['ImageDescription'] as String? ?? 'No Description';
     String imageUrl = data?['ImageUrl'] as String? ?? 'no image url';
 
-    return Card(
-      child: Column(
-        children: <Widget>[
-          ListTile(
-            title: Text(title),
-            subtitle: Text(description),
-            trailing: Text(date),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => PhotoDetailPage(
-                    ImageUrl: imageUrl,
-                    ImageTitle: title,
-                    ImageDate: date,
-                    ImageDescription: description,
+    return  Card(
+        elevation: 5,
+        color: Colors.grey[200], // Example color
+        child: Column(
+          children: <Widget>[
+            ListTile(
+              title: Text(title),
+              subtitle: Text(description),
+              trailing: Text(date),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => PhotoDetailPage(
+                      ImageUrl: imageUrl,
+                      ImageTitle: title,
+                      ImageDate: date,
+                      ImageDescription: description,
+                    ),
                   ),
-                ),
-              );
-            },
-          ),
-          Hero(
-            tag: imageUrl,
-            child: Image.network(imageUrl, fit: BoxFit.cover),
-          ),
-        ],
+                );
+              },
+            ),
+      Hero(
+        tag: imageUrl,
+        child: FadeInImage.memoryNetwork(
+            placeholder: kTransparentImage, // Placeholder for smooth loading
+            image: imageUrl,
+            fit: BoxFit.cover
+        ),
       ),
-    );
+          ],
+        ),
+      );
+
   }
 
   @override
@@ -239,6 +247,7 @@ if (mounted) {
             StreamBuilder<QuerySnapshot>(
               stream:
               FirebaseFirestore.instance.collection('images/').snapshots(),
+
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return Text('Error: ${snapshot.error}');
